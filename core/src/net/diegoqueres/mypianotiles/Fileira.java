@@ -3,9 +3,7 @@ package net.diegoqueres.mypianotiles;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
-import static net.diegoqueres.mypianotiles.Cons.tileHeight;
-import static net.diegoqueres.mypianotiles.Cons.tileWidth;
-import static net.diegoqueres.mypianotiles.Cons.verde;
+import static net.diegoqueres.mypianotiles.Cons.*;
 
 public class Fileira {
     private static final int MAX_TILES = 4;
@@ -30,5 +28,9 @@ public class Fileira {
         for (int i = 0; i < MAX_TILES; i++) {
             shapeRenderer.rect(i * tileWidth, y, tileWidth, tileHeight);
         }
+    }
+
+    public void update(float time) {
+        y -= time * velAtual;
     }
 }
