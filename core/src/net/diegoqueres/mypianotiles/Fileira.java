@@ -17,33 +17,69 @@ public class Fileira {
 
     private int correta;  // de 0 a 3 (col correta)
 
-    private boolean ok;   //indica se acertou a tile na fileira
+    private boolean destruindo;
+
+    private float anim;
+
+    private boolean acertou;   //indica se acertou a tile na fileira
 
     public Fileira(float y, int correta) {
         this.y = y;
         this.correta = correta;
-        this.ok = false;
+        this.acertou = false;
+        this.destruindo = false;
+        this.anim = 0;
     }
 
     public void draw(ShapeRenderer shapeRenderer) {
         shapeRenderer.set(ShapeRenderer.ShapeType.Filled);
+
         shapeRenderer.setColor(verde);
-        shapeRenderer.rect(correta * tileWidth, y, tileWidth, tileHeight);
+        float xCorreta = correta * tileWidth;
+        shapeRenderer.rect(xCorreta, y, tileWidth, tileHeight);
+
+        if (destruindo)
+            drawAnim(acertou, shapeRenderer);
 
         shapeRenderer.set(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.GRAY);
 
         for (int i = 0; i < MAX_TILES; i++) {
-            shapeRenderer.rect(i * tileWidth, y, tileWidth, tileHeight);
+            float x = i * tileWidth;
+            shapeRenderer.rect(x, y, tileWidth, tileHeight);
+        }
+    }
+
+    private void drawAnim(boolean acertou, ShapeRenderer shapeRenderer) {
+        final float x = pos*tileWidth;
+        if (acertou)
+            shapeRenderer.setColor(certo);
+        else
+            shapeRenderer.setColor(errado);
+
+        shapeRenderer.rect(
+                x + (tileWidth - anim*tileWidth)/2f,
+                y + (tileHeight - anim*tileHeight)/2f,
+                anim*tileWidth,
+                anim*tileHeight
+        );
+    }
+
+    public void updateAnim(float time) {
+        if (destruindo && anim < 1) {
+            anim += velAnim * time;
+            if (anim >= 1)
+                anim = 1;
         }
     }
 
     public DESCIDA update(float time) {
         y -= time * velAtual;
         if (y < 0 - tileHeight) {   //se fileira saiu completamente da tela
-            if (ok) {
+            if (acertou) {
                 return DESCIDA.DESCEU_ACERTOU;
             } else {
+                erro();
                 return DESCIDA.DESCEU_ERROU;
             }
         }
@@ -54,13 +90,20 @@ public class Fileira {
         if (ty >= y && ty <= y + tileHeight) {
             pos = tx / tileWidth;
             if (pos == correta) {
-                ok = true;
+                acertou = true;
+                destruindo = true;
                 return TOQUE.TILE_CORRETA;
             } else {
-                ok = false;
+                acertou = false;
+                destruindo = true;
                 return TOQUE.FILEIRA_CORRETA;
             }
         }
         return TOQUE.NENHUM;
+    }
+
+    public void erro() {
+        destruindo = true;
+        pos = correta;
     }
 }

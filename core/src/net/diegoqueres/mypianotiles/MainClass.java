@@ -64,14 +64,15 @@ public class MainClass extends ApplicationAdapter {
 						Fileira.TOQUE retorno = fileiras.get(i).toque(x, y);
 						if (retorno != Fileira.TOQUE.NENHUM) {
 							if (retorno == Fileira.TOQUE.TILE_CORRETA && i == idxFileiraInferior) {
-								// tile certa -> fazer algo
+								// tile certa
 								pontos++;
 								idxFileiraInferior++;
 							} else if (retorno == Fileira.TOQUE.TILE_CORRETA) {
-								// finalizar da forma 1: tile certa mas numa fileira superior
+								// tile certa mas numa fileira superior
+								fileiras.get(idxFileiraInferior).erro();
 								finalizar(false);
 							} else {
-								// finalizar -> tile errada. finalizar da forma 2
+								// tile errada
 								finalizar(false);
 							}
 							break;
@@ -97,11 +98,20 @@ public class MainClass extends ApplicationAdapter {
 	}
 
 	private void update(float deltaTime) {
-		if (estado != INICIADO) return;
+		if (estado != INICIADO) {
+			for (Fileira f : fileiras) {
+				f.updateAnim(deltaTime);
+			}
+			return;
+		}
+
 		tempoTotal += deltaTime;
 		velAtual = velIni + ((tileHeight*tempoTotal)/8f);
+
 		for (int i = 0; i < fileiras.size; i++) {
 			Fileira.DESCIDA retorno = fileiras.get(i).update(deltaTime);
+			fileiras.get(i).updateAnim(deltaTime);
+
 			if (retorno != Fileira.DESCIDA.NAO_DESCEU) {
 				switch (retorno) {
 					case DESCEU_ACERTOU:
