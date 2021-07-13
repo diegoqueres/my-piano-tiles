@@ -11,7 +11,7 @@ public class Fileira {
 
     private static final int MAX_TILES = 4;
 
-    private float y;
+    public float y;
 
     private int pos;
 

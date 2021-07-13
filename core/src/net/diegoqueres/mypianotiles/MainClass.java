@@ -8,10 +8,12 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import java.util.Random;
+
 import static net.diegoqueres.mypianotiles.Cons.*;
+import static net.diegoqueres.mypianotiles.Cons.ESTADO.*;
 
 public class MainClass extends ApplicationAdapter {
-
 	private ShapeRenderer shapeRenderer;
 
 	private Array<Fileira> fileiras;
@@ -22,18 +24,18 @@ public class MainClass extends ApplicationAdapter {
 
 	private int pontos;
 
+	private Random random;
+
+	private ESTADO estado;
+
 	@Override
 	public void create () {
 		shapeRenderer = new ShapeRenderer();
 		shapeRenderer.setAutoShapeType(true);
-
 		fileiras = new Array<>();
-		fileiras.add(new Fileira(0,0));
-		fileiras.add(new Fileira(1*tileHeight,1));
-		fileiras.add(new Fileira(2*tileHeight,2));
+		random = new Random();
 
-		idxFileiraInferior = 0;
-		pontos = 0;
+		iniciar();
 	}
 
 	@Override
@@ -53,44 +55,90 @@ public class MainClass extends ApplicationAdapter {
 		if (Gdx.input.justTouched()) {
 			int x = Gdx.input.getX();
 			int y = screeny - Gdx.input.getY();
-			for (int i = 0; i < fileiras.size; i++) {
-				Fileira.TOQUE retorno = fileiras.get(i).toque(x, y);
-				if (retorno != Fileira.TOQUE.NENHUM) {
-					if (retorno == Fileira.TOQUE.TILE_CORRETA && i == idxFileiraInferior) {
-						// tile certa -> fazer algo
-						pontos++;
-						idxFileiraInferior++;
-					} else if (retorno == Fileira.TOQUE.TILE_CORRETA) {
-						// finalizar da forma 1: tile certa mas numa fileira superior
-						finalizar();
-					} else {
-						// finalizar -> tile errada. finalizar da forma 2
-						finalizar();
+
+			switch (estado) {
+				case PARADO:
+					estado = INICIADO;
+				case INICIADO:
+					for (int i = 0; i < fileiras.size; i++) {
+						Fileira.TOQUE retorno = fileiras.get(i).toque(x, y);
+						if (retorno != Fileira.TOQUE.NENHUM) {
+							if (retorno == Fileira.TOQUE.TILE_CORRETA && i == idxFileiraInferior) {
+								// tile certa -> fazer algo
+								pontos++;
+								idxFileiraInferior++;
+							} else if (retorno == Fileira.TOQUE.TILE_CORRETA) {
+								// finalizar da forma 1: tile certa mas numa fileira superior
+								finalizar(false);
+							} else {
+								// finalizar -> tile errada. finalizar da forma 2
+								finalizar(false);
+							}
+							break;
+						}
 					}
 					break;
-				}
+
+				case PERDEU:
+					iniciar();
+					break;
 			}
 		}
 	}
 
-	private void finalizar() {
+	private void finalizar(boolean isSubirFileira) {
 		Gdx.input.vibrate(200);
+		estado = PERDEU;
+		if (isSubirFileira) {
+			for (Fileira f : fileiras) {
+				f.y += tileHeight;
+			}
+		}
 	}
 
 	private void update(float deltaTime) {
+		if (estado != INICIADO) return;
 		tempoTotal += deltaTime;
 		velAtual = velIni + ((tileHeight*tempoTotal)/8f);
 		for (int i = 0; i < fileiras.size; i++) {
 			Fileira.DESCIDA retorno = fileiras.get(i).update(deltaTime);
 			if (retorno != Fileira.DESCIDA.NAO_DESCEU) {
-				if (retorno == Fileira.DESCIDA.DESCEU_ACERTOU) {
-					fileiras.removeIndex(i);
-					i--;
-					idxFileiraInferior--;
-					adicionar();
+				switch (retorno) {
+					case DESCEU_ACERTOU:
+						fileiras.removeIndex(i);
+						i--;
+						idxFileiraInferior--;
+						adicionar();
+						break;
+					case DESCEU_ERROU:
+						finalizar(true);
+						break;
 				}
 			}
 		}
+	}
+
+	private void iniciar() {
+		tempoTotal = 0;
+		idxFileiraInferior = 0;
+		pontos = 0;
+
+		fileiras.clear();
+		adicionar(tileHeight);
+		for (int i = 1; i <= 4; i++)
+			adicionar();
+
+		estado = PARADO;
+	}
+
+	private void adicionar() {
+		Fileira ultimaFileira = fileiras.get(fileiras.size-1);
+		float y = ultimaFileira.y + tileHeight;
+		adicionar(y);
+	}
+
+	private void adicionar(float y) {
+		fileiras.add( new Fileira(y, random.nextInt(4)) );
 	}
 
 	@Override
