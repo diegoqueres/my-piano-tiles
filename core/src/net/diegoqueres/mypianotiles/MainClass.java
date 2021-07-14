@@ -16,6 +16,8 @@ import static net.diegoqueres.mypianotiles.Cons.ESTADO.*;
 public class MainClass extends ApplicationAdapter {
 	private ShapeRenderer shapeRenderer;
 
+	private SpriteBatch batch;
+
 	private Array<Fileira> fileiras;
 
 	private float tempoTotal;
@@ -28,12 +30,19 @@ public class MainClass extends ApplicationAdapter {
 
 	private ESTADO estado;
 
+	private Piano piano;
+
+	private Texture textureIniciar;
+
 	@Override
 	public void create () {
 		shapeRenderer = new ShapeRenderer();
 		shapeRenderer.setAutoShapeType(true);
+		batch = new SpriteBatch();
 		fileiras = new Array<>();
 		random = new Random();
+		piano = new Piano("natal");
+		textureIniciar = new Texture("iniciar.png");
 
 		iniciar();
 	}
@@ -49,6 +58,12 @@ public class MainClass extends ApplicationAdapter {
 			f.draw(shapeRenderer);
 		}
 		shapeRenderer.end();
+
+		if (estado != PARADO) return;
+		batch.begin();
+		int x = 0, y = tileHeight / 4;
+		batch.draw(textureIniciar, x, y, screenx, tileHeight / 2);
+		batch.end();
 	}
 
 	private void input() {
@@ -67,6 +82,7 @@ public class MainClass extends ApplicationAdapter {
 								// tile certa
 								pontos++;
 								idxFileiraInferior++;
+								piano.tocar();
 							} else if (retorno == Fileira.TOQUE.TILE_CORRETA) {
 								// tile certa mas numa fileira superior
 								fileiras.get(idxFileiraInferior).erro();
@@ -132,6 +148,7 @@ public class MainClass extends ApplicationAdapter {
 		tempoTotal = 0;
 		idxFileiraInferior = 0;
 		pontos = 0;
+		piano.reset();
 
 		fileiras.clear();
 		adicionar(tileHeight);
@@ -154,5 +171,8 @@ public class MainClass extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		shapeRenderer.dispose();
+		batch.dispose();
+		textureIniciar.dispose();
+		piano.dispose();
 	}
 }
