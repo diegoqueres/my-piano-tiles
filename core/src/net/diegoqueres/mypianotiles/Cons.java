@@ -16,7 +16,9 @@ public class Cons {
     public static int tileWidth = screenx/4;
     public static int tileHeight = screeny/4;
 
-    public static float velIni = (1 * tileHeight) / 1f;     //2 tiles por segundo
+    public static float velIni = (1 * tileHeight) / 1f;     //1 tile por segundo
     public static float velAtual = 0f;
     public static float velAnim = 5f;
+
+    public static final int MAX_TEXTURE_SIZE = 2048;
 }

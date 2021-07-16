@@ -2,8 +2,12 @@ package net.diegoqueres.mypianotiles;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -34,6 +38,11 @@ public class MainClass extends ApplicationAdapter {
 
 	private Texture textureIniciar;
 
+	private BitmapFont fonte;
+
+	private GlyphLayout glyphLayout;
+
+
 	@Override
 	public void create () {
 		shapeRenderer = new ShapeRenderer();
@@ -43,8 +52,22 @@ public class MainClass extends ApplicationAdapter {
 		random = new Random();
 		piano = new Piano("natal");
 		textureIniciar = new Texture("iniciar.png");
+		glyphLayout = new GlyphLayout();
+		carregarFonte();
 
 		iniciar();
+	}
+
+	private void carregarFonte() {
+		FreeTypeFontGenerator.setMaxTextureSize(MAX_TEXTURE_SIZE);
+		FreeTypeFontGenerator generator =
+				new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
+		FreeTypeFontGenerator.FreeTypeFontParameter parameter =
+				new FreeTypeFontGenerator.FreeTypeFontParameter();
+		parameter.size = (int) (.07f*screeny);
+		parameter.color = Color.CYAN;
+		fonte = generator.generateFont(parameter);
+		generator.dispose();
 	}
 
 	@Override
@@ -59,10 +82,13 @@ public class MainClass extends ApplicationAdapter {
 		}
 		shapeRenderer.end();
 
-		if (estado != PARADO) return;
 		batch.begin();
-		int x = 0, y = tileHeight / 4;
-		batch.draw(textureIniciar, x, y, screenx, tileHeight / 2);
+		if (estado == PARADO) {
+			int x = 0, y = tileHeight / 4;
+			batch.draw(textureIniciar, x, y, screenx, tileHeight / 2);
+		}
+		fonte.draw(batch, String.valueOf(pontos), 0, screeny);
+		fonte.draw(batch, getTaxaTilesPorSegundo(), screenx-getTextWidth(fonte, getTaxaTilesPorSegundo()), screeny);
 		batch.end();
 	}
 
@@ -148,6 +174,7 @@ public class MainClass extends ApplicationAdapter {
 		tempoTotal = 0;
 		idxFileiraInferior = 0;
 		pontos = 0;
+		velAtual = 0;
 		piano.reset();
 
 		fileiras.clear();
@@ -166,6 +193,16 @@ public class MainClass extends ApplicationAdapter {
 
 	private void adicionar(float y) {
 		fileiras.add( new Fileira(y, random.nextInt(4)) );
+	}
+
+	private float getTextWidth(BitmapFont font, String text) {
+		glyphLayout.reset();
+		glyphLayout.setText(font, text);
+		return glyphLayout.width;
+	}
+
+	public String getTaxaTilesPorSegundo() {
+		return String.format("%.2f", velAtual/tileHeight);
 	}
 
 	@Override

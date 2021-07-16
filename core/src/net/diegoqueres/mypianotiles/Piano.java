@@ -39,7 +39,7 @@ public class Piano {
 
     public void tocar() {
         String notaMusical = notas.get(indice);
-        sounds.get(notaMusical).play(.5f);
+        sounds.get(notaMusical).play(.75f);
         avancarIndice();
     }
 
